@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Metadata } from "next";
 
 interface Article {
   id: string;
@@ -8,6 +9,7 @@ interface Article {
   uploader?: string;
 }
 
+// ✅ Gunakan parameter eksplisit sesuai standar App Router
 export default async function Page({ params }: { params: { id: string } }) {
   const { id } = params;
 
