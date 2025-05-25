@@ -9,13 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@headlessui/react": "^2.2.4",
     "@hookform/resolvers": "^5.0.1",
+    "@mantine/core": "^5.10.5",
+    "@mantine/rte": "^3.6.14",
     "axios": "^1.9.0",
+    "cloudinary": "^2.6.1",
+    "draft-js": "^0.11.7",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-draft-wysiwyg": "^1.15.0",
     "react-hook-form": "^7.56.4",
+    "react-quill": "^2.0.0",
     "shadcn-ui": "^0.9.5",
     "zod": "^3.25.28"
   },
