@@ -22,6 +22,12 @@ export default function AdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [totalArticles, setTotalArticles] = useState(0);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(
+    null
+  );
+
+  const [username, setUsername] = useState("User");
 
   // Debounce search
   useEffect(() => {
@@ -42,6 +48,17 @@ export default function AdminPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
+
+  const handleClick = () => {
+    router.push("/dashboard/admin/profile"); // arahkan ke halaman profil
+  };
+
   const fetchArticles = async () => {
     try {
       const res = await api.get("/articles", {
@@ -50,10 +67,30 @@ export default function AdminPage() {
           limit: 1000, // Ambil semua data
         },
       });
+
       const data = Array.isArray(res.data) ? res.data : res.data.data;
-      setAllArticles(data);
+
+      // Urutkan berdasarkan createdAt descending (terbaru di atas)
+      const sorted = data.sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setAllArticles(sorted);
     } catch (err) {
       console.error("Error fetching articles:", err);
+    }
+  };
+
+  const deleteArticle = async () => {
+    if (!selectedArticleId) return;
+    try {
+      await api.delete(`/articles/${selectedArticleId}`);
+      setShowDeleteModal(false);
+      setSelectedArticleId(null);
+      fetchArticles(); // refresh list
+    } catch (error) {
+      console.error("Gagal menghapus artikel", error);
     }
   };
 
@@ -89,6 +126,12 @@ export default function AdminPage() {
       );
     }
 
+    // Tambahkan pengurutan agar tetap terbaru di atas setelah filter
+    temp = temp.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
     setFilteredArticles(temp);
     setTotalArticles(temp.length);
     setCurrentPage(1); // Reset ke halaman awal saat filter berubah
@@ -111,29 +154,19 @@ export default function AdminPage() {
           <div className="text-xl text-black font-semibold">Articles</div>
           <div className="relative">
             <button
+              onClick={handleClick}
               className="flex items-center space-x-2 text-white bg-transparent px-4 py-2 rounded hover:bg-blue-700 hover:text-white"
-              onClick={() => setShowDropdown((prev) => !prev)}
             >
-              <span className="text-black">John Doe</span>
-              <ChevronDown size={16} className="text-black" />
-            </button>
-
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded shadow z-20">
-                <a
-                  href="/profile"
-                  className="block px-4 py-2 text-black hover:bg-gray-100"
-                >
-                  Profile
-                </a>
-                <a
-                  href="/logout"
-                  className="block px-4 py-2 text-red-600 hover:bg-gray-100"
-                >
-                  Logout
-                </a>
+              {/* Profile Circle with Initial */}
+              <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center text-blue-900 font-semibold">
+                {username.charAt(0).toUpperCase()}
               </div>
-            )}
+
+              {/* Username Text */}
+              <span className="text-black underline underline-offset-1">
+                {username}
+              </span>
+            </button>
           </div>
         </div>
 
@@ -226,7 +259,15 @@ export default function AdminPage() {
                       >
                         Edit
                       </Link>
-                      <button className="text-red-600">Delete</button>
+                      <button
+                        className="text-red-600"
+                        onClick={() => {
+                          setSelectedArticleId(article.id);
+                          setShowDeleteModal(true);
+                        }}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -268,6 +309,35 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded shadow-xl w-full max-w-sm">
+              <h2 className="text-lg font-semibold mb-4">Deleting Article</h2>
+              <p className="mb-6">
+                Deleting this article is permanent and cannot be undone. All
+                related content will be removed.
+              </p>
+              <div className="flex justify-end space-x-2">
+                <button
+                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setSelectedArticleId(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                  onClick={deleteArticle}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     </ProtectedRoute>
   );

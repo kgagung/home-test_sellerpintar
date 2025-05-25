@@ -40,9 +40,11 @@ export default function LoginPage() {
 
       // Step 3: Get profile
       const profileResponse = await api.get("/auth/profile");
-      const { role } = profileResponse.data;
+      const { role, username } = profileResponse.data;
 
       localStorage.setItem("role", role);
+      localStorage.setItem("username", username);
+      localStorage.setItem("password", data.password);
 
       // Step 4: Redirect
       if (role === "Admin") {

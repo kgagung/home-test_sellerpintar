@@ -12,6 +12,16 @@ import { ReactNode } from "react";
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Bersihkan data login di localStorage (jika ada)
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("role");
+    // Redirect ke halaman login
+    router.push("/login");
+  };
 
   return (
     <ProtectedRoute role="admin">
@@ -70,9 +80,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 Articles
               </Link>
               <Link
-                href="/dashboard/category"
+                href="/dashboard/admin/category"
                 className={`p-2 rounded ${
-                  pathname === "/dashboard/category"
+                  pathname === "/dashboard/admin/category"
                     ? "bg-blue-600 text-white"
                     : "hover:bg-blue-600"
                 }`}
@@ -80,17 +90,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               >
                 Category
               </Link>
-              <Link
-                href="/logout"
-                className={`p-2 rounded ${
-                  pathname === "/logout"
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-blue-600"
-                }`}
-                onClick={() => setIsOpen(false)}
+              <button
+                className="p-2 text-left rounded hover:bg-blue-600"
+                onClick={() => setIsOpen(true)}
               >
                 Logout
-              </Link>
+              </button>
             </nav>
           </aside>
 
@@ -104,6 +109,30 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           )}
           <main className="flex-1 bg-gray-100 md:ml-64">{children}</main>
         </div>
+
+        {/* Modal */}
+        {isOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg">
+              <h2 className="text-lg font-semibold mb-4">Logout</h2>
+              <p className="mb-6">Are you sure want to logout?</p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-red-700"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </>
     </ProtectedRoute>
   );

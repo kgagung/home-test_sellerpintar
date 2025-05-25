@@ -1,12 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronDown, ArrowLeft, ImagePlus } from "lucide-react";
 import { Dialog } from "@headlessui/react";
 import axios from "@/lib/axios";
 
-export default function AddArticleForm() {
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  categoryId: string;
+  imageUrl?: string;
+}
+
+export default function EditArticleForm() {
   const router = useRouter();
+  const params = useParams(); // Ambil params dari hook
+  const id = params?.id as string;
+
   const [showDropdown, setShowDropdown] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -18,30 +29,36 @@ export default function AddArticleForm() {
     []
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [initialImageUrl, setInitialImageUrl] = useState<string | null>(null);
+
   const [username, setUsername] = useState("User");
 
-  const [errors, setErrors] = useState({
-    title: "",
-    categoryId: "",
-    content: "",
-    imageUrl: "",
-  });
-
+  // Ambil data artikel & kategori saat mount
   useEffect(() => {
-    async function fetchCategories() {
+    async function fetchArticleAndCategories() {
       try {
-        const response = await axios.get("/categories");
-        setCategories(response.data.data);
-        if (response.data.data.length > 0) {
-          setCategoryId(response.data.data[0].id);
-        }
+        const [articleRes, categoriesRes] = await Promise.all([
+          axios.get(`/articles/${id}`),
+          axios.get("/categories"),
+        ]);
+
+        const articleData: Article = articleRes.data.data || articleRes.data;
+        const categoriesData = categoriesRes.data.data || [];
+
+        setTitle(articleData.title);
+        setContent(articleData.content);
+        setCategoryId(articleData.categoryId);
+        setInitialImageUrl(articleData.imageUrl || null);
+        setPreviewUrl(articleData.imageUrl || null);
+
+        setCategories(categoriesData);
       } catch (error) {
-        console.error("Gagal mengambil kategori", error);
+        console.error("Gagal mengambil data", error);
       }
     }
 
-    fetchCategories();
-  }, []);
+    fetchArticleAndCategories();
+  }, [id]);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -63,12 +80,13 @@ export default function AddArticleForm() {
       reader.onloadend = () => setPreviewUrl(reader.result as string);
       reader.readAsDataURL(file);
     } else {
-      setPreviewUrl(null);
+      setPreviewUrl(initialImageUrl);
     }
   };
 
   const handleImageUpload = async () => {
-    if (!image) return "";
+    if (!image) return initialImageUrl || "";
+
     const formData = new FormData();
     formData.append("file", image);
     formData.append("upload_preset", "unsigned_articles_upload");
@@ -93,21 +111,18 @@ export default function AddArticleForm() {
     try {
       const imageUrl = await handleImageUpload();
 
-      await axios.post("/articles", {
+      await axios.put(`/articles/${id}`, {
         title,
-        content, // tidak ada tag <img> di sini
+        content,
         categoryId,
-        imageUrl, // kirim imageUrl sebagai field terpisah
+        imageUrl,
       });
 
-      alert("Artikel berhasil ditambahkan");
-      setTitle("");
-      setContent("");
-      setImage(null);
-      setPreviewUrl(null);
-      if (categories.length > 0) setCategoryId(categories[0].id);
+      alert("Artikel berhasil diperbarui");
+      router.back();
     } catch (err) {
-      console.error("Gagal submit artikel", err);
+      console.error("Gagal update artikel", err);
+      alert("Gagal update artikel");
     } finally {
       setLoading(false);
     }
@@ -144,7 +159,7 @@ export default function AddArticleForm() {
             onClick={() => router.back()}
           >
             <ArrowLeft className="mr-2" size={20} />
-            Create Article
+            Edit Article
           </button>
 
           {/* Upload Image */}
@@ -282,7 +297,7 @@ export default function AddArticleForm() {
               disabled={loading}
               className="bg-blue-600 text-white px-6 py-2 rounded"
             >
-              {loading ? "Uploading..." : "Add Article"}
+              {loading ? "Updating..." : "Update Article"}
             </button>
           </div>
         </form>

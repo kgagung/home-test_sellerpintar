@@ -11,6 +11,7 @@ type Article = {
   title: string;
   content: string;
   categoryId: string;
+  imageUrl: string;
 };
 
 export default function AdminPage() {
@@ -30,10 +31,20 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch("/article"); // ganti URL sesuai backend kamu
-        const data = await response.json();
-        setAllArticles(data);
-        setFilteredArticles(data); // initial state
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "https://test-fe.mysellerpintar.com/api/articles",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+        console.log("Fetched articles:", result);
+        setAllArticles(result.data); //
+        setFilteredArticles(result.data); //
       } catch (error) {
         console.error("Failed to fetch articles:", error);
       }
@@ -178,7 +189,7 @@ export default function AdminPage() {
               className="bg-white rounded-lg shadow-lg overflow-hidden"
             >
               <img
-                src={article.image}
+                src={article.imageUrl}
                 alt={article.title}
                 className="w-full h-48 object-cover"
               />
@@ -187,7 +198,9 @@ export default function AdminPage() {
                   {article.categoryId}
                 </span>
                 <h2 className="text-xl font-bold mt-2">{article.title}</h2>
-                <p className="text-gray-600 mt-2">{article.content}</p>
+                <p className="text-gray-600 mt-2">
+                  {article.content.slice(0, 100)}...
+                </p>
               </div>
             </div>
           ))}
