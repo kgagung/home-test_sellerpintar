@@ -15,17 +15,25 @@ interface PageProps {
 }
 
 // Next.js 13 app directory server component
-export default async function PreviewPage({ params }: PageProps) {
+export default function Page({ params }: PageProps) {
   const { id } = params;
 
-  let article: Article | null = null;
+  let article: Article = {
+    id: "",
+    title: "",
+    content: "",
+    createdAt: "",
+    uploader: "",
+  };
 
   try {
-    // Fetch artikel berdasarkan id
-    const response = await axios.get(
-      `https://test-fe.mysellerpintar.com/api/articles/${id}`
-    );
-    article = response.data;
+    async () => {
+      // Fetch artikel berdasarkan id
+      const response = await axios.get(
+        `https://test-fe.mysellerpintar.com/api/articles/${id}`
+      );
+      article = response.data;
+    };
   } catch (error) {
     console.error("Failed to fetch article:", error);
   }
