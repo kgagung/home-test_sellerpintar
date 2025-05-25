@@ -14,6 +14,9 @@ export default function AdminPage() {
   const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  );
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [showDropdown, setShowDropdown] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,6 +56,19 @@ export default function AdminPage() {
       console.error("Error fetching articles:", err);
     }
   };
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await api.get("/categories");
+        setCategories(response.data.data || []);
+      } catch (error) {
+        console.error("Gagal mengambil kategori", error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   // Filtering lokal
   useEffect(() => {
@@ -133,12 +149,15 @@ export default function AdminPage() {
                 value={category}
                 onChange={(e) => {
                   setCategory(e.target.value);
-                  setCurrentPage(1);
+                  setCurrentPage(1); // reset ke halaman 1 saat filter berubah
                 }}
               >
                 <option value="">All Categories</option>
-                <option value="Technology">Technology</option>
-                {/* Tambahkan kategori lain */}
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
 
               <input
