@@ -63,7 +63,9 @@ export default async function ArticlePreviewPage({
 }: {
   params: { id: string };
 }) {
-  const article = await getArticleById(params.id);
+  const { id } = params;
+
+  const article = await getArticleById(id);
   const relatedArticles = article
     ? await getRelatedArticles(article.createdAt, article.id)
     : [];
@@ -86,7 +88,6 @@ export default async function ArticlePreviewPage({
       year: "numeric",
     });
   };
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="flex flex-col items-center text-center mb-2">
