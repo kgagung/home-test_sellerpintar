@@ -145,7 +145,7 @@ export default function AdminPage() {
   return (
     <>
       <div
-        className="max-h-[80vh] bg-cover bg-center relative inset-0 z-0"
+        className="h-screen sm:max-h-[80vh] bg-cover bg-center relative inset-0 z-0"
         style={{
           backgroundImage:
             "url('/3db22360cc9442cb78dec9c16d45821461792f80.jpg')",
@@ -158,14 +158,14 @@ export default function AdminPage() {
         />
 
         {/* Konten */}
-        <div className="relative z-10 min-h-[80vh] flex flex-col px-4 sm:px-8">
+        <div className="relative z-10 h-full flex flex-col px-4 sm:px-8">
           {/* Search tengah */}
           <div className="flex-1 flex items-center justify-center">
             <div className="bg-transparent w-full max-w-3xl">
               <h2 className="text-base sm:text-lg font-bold text-center text-white mb-3">
                 Blog genzet
               </h2>
-              <h2 className="text-2xl sm:text-5xl text-center text-white mb-3">
+              <h2 className="text-4xl sm:text-5xl text-center text-white mb-3">
                 The Journal : Design Resources, Interviews, and Industry News
               </h2>
               <p className="text-base sm:text-2xl text-center text-white mb-8 sm:mb-12">
