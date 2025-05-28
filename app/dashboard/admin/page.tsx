@@ -97,7 +97,7 @@ export default function AdminPage() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await api.get("/categories");
+        const response = await api.get("/categories?limit=9999");
         setCategories(response.data.data || []);
       } catch (error) {
         console.error("Gagal mengambil kategori", error);
