@@ -234,7 +234,7 @@ export default function AdminPage() {
 
                 {/* Ringkasan Konten */}
                 <p className="text-gray-600 mb-3">
-                  {article.content.slice(0, 100)}...
+                  {article.content.replace(/\n/g, "<br />").slice(0, 100)}...
                 </p>
 
                 {/* Kategori Bubble */}

@@ -30,7 +30,7 @@ export default function AddArticleForm() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await axios.get("/categories");
+        const response = await axios.get("/categories?limit=9999");
         setCategories(response.data.data);
         if (response.data.data.length > 0) {
           setCategoryId(response.data.data[0].id);
@@ -86,30 +86,112 @@ export default function AddArticleForm() {
     return data.secure_url;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const insertTag = (tag: string) => {
+    const textarea = document.getElementById(
+      "content-textarea"
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.slice(start, end);
+    const before = content.slice(0, start);
+    const after = content.slice(end);
+
+    const wrapped = `<${tag}>${selectedText || ""}</${tag}>`;
+    const newContent = before + wrapped + after;
+
+    setContent(newContent);
+
+    // set cursor after inserted tag
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd =
+        before.length + wrapped.length;
+    }, 0);
+  };
+
+  const insertBulletList = () => {
+    const textarea = document.getElementById(
+      "content-textarea"
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const before = content.slice(0, start);
+    const selected = content.slice(start, end);
+    const after = content.slice(end);
+
+    // Pisah teks yang dipilih jadi baris per baris
+    const lines = selected.split("\n");
+
+    // Tambahkan bullet "• " di awal setiap baris (jika belum ada)
+    const bulletedLines = lines.map((line) => {
+      return line.startsWith("• ") ? line : `• ${line}`;
+    });
+
+    // Gabungkan kembali
+    const newSelected = bulletedLines.join("\n");
+
+    // Update konten
+    const newContent = before + newSelected + after;
+    setContent(newContent);
+
+    // Set posisi kursor agar tetap di bagian akhir pilihan yang baru
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = start;
+      textarea.selectionEnd = start + newSelected.length;
+    }, 0);
+  };
+
+  const handleSubmit = async (e?: React.FormEvent, returnData = false) => {
+    if (e) e.preventDefault();
     setLoading(true);
 
     try {
       const imageUrl = await handleImageUpload();
 
-      await axios.post("/articles", {
+      // Kirim data ke server
+      const response = await axios.post("/articles", {
         title,
-        content, // tidak ada tag <img> di sini
+        content, // content tanpa tag <img>
         categoryId,
-        imageUrl, // kirim imageUrl sebagai field terpisah
+        imageUrl,
       });
 
-      alert("Artikel berhasil ditambahkan");
-      setTitle("");
-      setContent("");
-      setImage(null);
-      setPreviewUrl(null);
-      if (categories.length > 0) setCategoryId(categories[0].id);
+      if (!returnData) {
+        alert("Artikel berhasil ditambahkan");
+        // reset form
+        setTitle("");
+        setContent("");
+        setImage(null);
+        setPreviewUrl(null);
+        if (categories.length > 0) setCategoryId(categories[0].id);
+      }
+
+      if (returnData) {
+        return response.data; // kembalikan data hasil post (misal ada id artikel)
+      }
     } catch (err) {
       console.error("Gagal submit artikel", err);
+      alert("Gagal submit artikel. Silakan cek konsol.");
+      if (returnData) {
+        throw err; // agar bisa ditangani caller
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePreviewSubmit = async () => {
+    try {
+      const data = await handleSubmit(undefined, true); // tidak ada event, returnData = true
+      router.push(`/dashboard/user/preview/${data.id}`);
+    } catch (error) {
+      // error sudah ditangani di handleSubmit
     }
   };
 
@@ -266,7 +348,37 @@ export default function AddArticleForm() {
           {/* Content */}
           <div>
             <label className="block font-medium mb-1">Content</label>
+
+            {/* Formatting Buttons */}
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => insertTag("b")}
+                className="px-3 py-1 border rounded text-sm hover:bg-gray-100"
+              >
+                Bold
+              </button>
+              <button
+                type="button"
+                onClick={() => insertTag("i")}
+                className="px-3 py-1 border rounded text-sm hover:bg-gray-100"
+              >
+                Italic
+              </button>
+              <button
+                type="button"
+                onClick={() => insertTag("u")}
+                className="px-3 py-1 border rounded text-sm hover:bg-gray-100"
+              >
+                Underline
+              </button>
+              <button type="button" onClick={insertBulletList} className="btn">
+                • List
+              </button>
+            </div>
+
             <textarea
+              id="content-textarea"
               placeholder="Write your article here..."
               className="border p-2 rounded w-full min-h-[120px]"
               value={content}
@@ -276,11 +388,31 @@ export default function AddArticleForm() {
           </div>
 
           {/* Submit Button (right-bottom) */}
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 space-x-3">
+            {/* Tombol Cancel */}
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="bg-white text-gray-700 border border-gray-300 px-6 py-2 rounded hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+
+            {/* Tombol Preview */}
+            <button
+              type="button"
+              onClick={handlePreviewSubmit}
+              className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 disabled:opacity-60"
+              disabled={loading}
+            >
+              {loading ? "Creating..." : "Preview"}
+            </button>
+
+            {/* Tombol Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 text-white px-6 py-2 rounded"
+              className="bg-blue-600 text-white px-6 py-2 rounded disabled:opacity-60"
             >
               {loading ? "Uploading..." : "Add Article"}
             </button>

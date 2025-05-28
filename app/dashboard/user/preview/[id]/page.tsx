@@ -101,11 +101,15 @@ export default async function ArticlePreviewPage({
       <img
         src={article.imageUrl}
         alt={article.title}
-        className="w-full h-64 object-cover rounded-lg mb-6"
+        className="w-full h-96 object-cover rounded-lg mb-6"
       />
 
       <div className="prose prose-lg max-w-none mb-10 text-justify">
-        <div dangerouslySetInnerHTML={{ __html: article.content }} />
+        <div
+          dangerouslySetInnerHTML={{
+            __html: article.content.replace(/\n/g, "<br />"),
+          }}
+        />
       </div>
 
       <h2 className="text-xl font-semibold mb-4">Other Articles</h2>
@@ -126,7 +130,7 @@ export default async function ArticlePreviewPage({
                   {a.title}
                 </h2>
                 <p className="text-gray-600 mb-3">
-                  {a.content.slice(0, 100)}...
+                  {a.content.replace(/\n/g, "<br />").slice(0, 100)}...
                 </p>
                 <span className="inline-block bg-blue-300 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
                   {getCategoryNameById(a.categoryId)}

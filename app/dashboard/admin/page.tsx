@@ -170,7 +170,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="m-8 p-8 border border-gray-200 bg-white rounded-xl">
+        <div className="mt-8 p-8 border border-gray-200 bg-white rounded-xl">
           <div className="flex gap-2 mb-8">
             <h2 className="font-bold">Total Article: {totalArticles}</h2>
           </div>

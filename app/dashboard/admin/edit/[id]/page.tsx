@@ -15,7 +15,7 @@ interface Article {
 
 export default function EditArticleForm() {
   const router = useRouter();
-  const params = useParams(); // Ambil params dari hook
+  const params = useParams();
   const id = params?.id as string;
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -30,7 +30,6 @@ export default function EditArticleForm() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialImageUrl, setInitialImageUrl] = useState<string | null>(null);
-
   const [username, setUsername] = useState("User");
 
   // Ambil data artikel & kategori saat mount
@@ -68,7 +67,7 @@ export default function EditArticleForm() {
   }, []);
 
   const handleClick = () => {
-    router.push("/dashboard/admin/profile"); // arahkan ke halaman profil
+    router.push("/dashboard/admin/profile");
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +127,64 @@ export default function EditArticleForm() {
     }
   };
 
+  // Fungsi untuk insert tag seperti <b></b>, <i></i>, <u></u>
+  const insertTag = (tag: "b" | "i" | "u") => {
+    const textarea = document.getElementById(
+      "content-textarea"
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const before = content.substring(0, start);
+    const selected = content.substring(start, end);
+    const after = content.substring(end);
+
+    const newText = `<${tag}>${selected}</${tag}>`;
+
+    const updatedContent = before + newText + after;
+    setContent(updatedContent);
+
+    // Set cursor after inserted tag
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = start + newText.length;
+      textarea.selectionEnd = start + newText.length;
+    }, 0);
+  };
+
+  // Fungsi untuk insert bullet list (•) di awal tiap baris yang dipilih
+  const insertBulletList = () => {
+    const textarea = document.getElementById(
+      "content-textarea"
+    ) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const before = content.slice(0, start);
+    const selected = content.slice(start, end);
+    const after = content.slice(end);
+
+    const lines = selected.split("\n");
+    const bulletedLines = lines.map((line) => {
+      return line.startsWith("• ") ? line : `• ${line}`;
+    });
+
+    const newSelected = bulletedLines.join("\n");
+
+    const newContent = before + newSelected + after;
+    setContent(newContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = start;
+      textarea.selectionEnd = start + newSelected.length;
+    }, 0);
+  };
+
   return (
     <>
       <div className="flex justify-between items-center p-6 border border-gray-200 bg-white">
@@ -137,12 +194,9 @@ export default function EditArticleForm() {
             onClick={handleClick}
             className="flex items-center space-x-2 text-white bg-transparent px-4 py-2 rounded hover:bg-blue-700 hover:text-white"
           >
-            {/* Profile Circle with Initial */}
             <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center text-blue-900 font-semibold">
               {username.charAt(0).toUpperCase()}
             </div>
-
-            {/* Username Text */}
             <span className="text-black underline underline-offset-1">
               {username}
             </span>
@@ -152,7 +206,6 @@ export default function EditArticleForm() {
 
       <div className="m-8 p-8 border border-gray-200 bg-white rounded-xl">
         <form onSubmit={handleSubmit} className="relative px-8 py-6 space-y-6">
-          {/* Back Button */}
           <button
             type="button"
             className="flex items-center text-lg mb-6"
@@ -176,17 +229,15 @@ export default function EditArticleForm() {
                   className="w-full h-full object-cover rounded"
                 />
               ) : (
-                <>
-                  <div className="flex flex-col items-center text-gray-500">
-                    <ImagePlus size={24} className="mb-1" />
-                    <span className="underline text-sm">
-                      Click to select files
-                    </span>
-                    <p className="text-xs mt-1">
-                      Support file type: .jpg or .png
-                    </p>
-                  </div>
-                </>
+                <div className="flex flex-col items-center text-gray-500">
+                  <ImagePlus size={24} className="mb-1" />
+                  <span className="underline text-sm">
+                    Click to select files
+                  </span>
+                  <p className="text-xs mt-1">
+                    Support file type: .jpg or .png
+                  </p>
+                </div>
               )}
             </label>
             <input
@@ -229,8 +280,6 @@ export default function EditArticleForm() {
                 </option>
               ))}
             </select>
-
-            {/* Text below select */}
             <p className="text-sm text-gray-600 mt-2">
               The existing category list can be seen in the{" "}
               <button
@@ -243,7 +292,6 @@ export default function EditArticleForm() {
               menu.
             </p>
 
-            {/* Modal */}
             <Dialog
               open={isModalOpen}
               onClose={() => setIsModalOpen(false)}
@@ -278,28 +326,64 @@ export default function EditArticleForm() {
             </Dialog>
           </div>
 
+          {/* Toolbar for content formatting */}
+          <div className="flex space-x-2">
+            <button
+              type="button"
+              onClick={() => insertTag("b")}
+              className="border px-2 rounded hover:bg-gray-200"
+              title="Bold"
+            >
+              <b>B</b>
+            </button>
+            <button
+              type="button"
+              onClick={() => insertTag("i")}
+              className="border px-2 rounded hover:bg-gray-200"
+              title="Italic"
+            >
+              <i>I</i>
+            </button>
+            <button
+              type="button"
+              onClick={() => insertTag("u")}
+              className="border px-2 rounded hover:bg-gray-200"
+              title="Underline"
+            >
+              <u>U</u>
+            </button>
+            <button
+              type="button"
+              onClick={insertBulletList}
+              className="border px-2 rounded hover:bg-gray-200"
+              title="Insert Bullet List"
+            >
+              • List
+            </button>
+          </div>
+
           {/* Content */}
           <div>
             <label className="block font-medium mb-1">Content</label>
             <textarea
-              placeholder="Write your article here..."
-              className="border p-2 rounded w-full min-h-[120px]"
+              id="content-textarea"
+              placeholder="Input content"
+              className="border p-2 rounded w-full min-h-[150px]"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               required
             />
           </div>
 
-          {/* Submit Button (right-bottom) */}
-          <div className="flex justify-end pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 text-white px-6 py-2 rounded"
-            >
-              {loading ? "Updating..." : "Update Article"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded ${
+              loading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+          >
+            {loading ? "Updating..." : "Update Article"}
+          </button>
         </form>
       </div>
     </>
