@@ -61,9 +61,10 @@ async function getCategories(): Promise<Category[]> {
 export default async function ArticlePreviewPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const resolvedParams = await params;
+  const { id } = resolvedParams;
 
   const article = await getArticleById(id);
   const relatedArticles = article
