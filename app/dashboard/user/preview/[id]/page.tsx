@@ -18,7 +18,11 @@ async function getArticleById(id: string) {
   return data;
 }
 
-async function getRelatedArticles(date: string, excludeId: string) {
+async function getRelatedArticles(
+  date: string,
+  excludeId: string,
+  categoryId: string
+) {
   const res = await fetch(`https://test-fe.mysellerpintar.com/api/articles`, {
     cache: "no-store",
   });
@@ -33,7 +37,7 @@ async function getRelatedArticles(date: string, excludeId: string) {
 
   const targetDate = new Date(date);
   const related = allArticles
-    .filter((a: any) => a.id !== excludeId)
+    .filter((a: any) => a.id !== excludeId && a.categoryId === categoryId)
     .map((a: any) => ({
       ...a,
       dateDiff: Math.abs(
@@ -68,7 +72,11 @@ export default async function ArticlePreviewPage({
 
   const article = await getArticleById(id);
   const relatedArticles = article
-    ? await getRelatedArticles(article.createdAt, article.id)
+    ? await getRelatedArticles(
+        article.createdAt,
+        article.id,
+        article.categoryId
+      )
     : [];
   const categories = await getCategories();
 

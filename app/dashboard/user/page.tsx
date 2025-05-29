@@ -233,9 +233,14 @@ export default function AdminPage() {
                 </h2>
 
                 {/* Ringkasan Konten */}
-                <p className="text-gray-600 mb-3">
-                  {article.content.replace(/\n/g, "<br />").slice(0, 100)}...
-                </p>
+                <p
+                  className="text-gray-600 mb-3"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      article.content.slice(0, 100).replace(/\n/g, "<br />") +
+                      "...",
+                  }}
+                ></p>
 
                 {/* Kategori Bubble */}
                 <span className="inline-block bg-blue-300 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
